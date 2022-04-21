@@ -41,6 +41,7 @@
 
 		function plotStates() {
 
+
 			// Load in my states data!
 			d3.csv("states.csv", function (data) {
 				console.log("Before: ", data);
@@ -82,6 +83,7 @@
 					console.log('Features: ', json.features);
 
 					// Bind the data to the SVG and create one path per GeoJSON feature
+					svg.selectAll("path").remove();
 					svg.selectAll("path")
 						.data(json.features)
 						.enter()
@@ -90,8 +92,10 @@
 						.style("stroke", "#fff")
 						.style("stroke-width", "1")
 						.style("fill", (d) => {
+							// return "black";
 							// Get data value
 							var value = d.properties.sentiment;
+							console.log("Raj:",value);
 							if (value) {
 								temp = value * 255  
 								temp2 = 255-temp
@@ -251,12 +255,9 @@
 	</select>
 
 	<select id="month">
-		<!-- <option value="1">Jan</option> -->
-		<option value="10">Oct</option>
-		<option value="12">Dec</option>
-		<option value="3">Mar</option>
+		<option value="1">Jan</option>
 		<option value="2">Feb</option>
-		<!-- <option value="3">Mar</option> -->
+		<option value="3">Mar</option>
 		<option value="4">Apr</option>
 		<option value="5">May</option>
 		<option value="6">Jun</option>
