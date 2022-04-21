@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<style type="text/css">
+		/* On mouse hover, lighten state color */
+		path:hover {
+			fill-opacity: .7;
+		}
+
+		/* Style for Custom Tooltip */
+		div.tooltip {
+			position: absolute;
+			text-align: center;
+			width: 60px;
+			height: 28px;
+			padding: 2px;
+			font: 12px sans-serif;
+			background: white;
+			border: 0px;
+			border-radius: 8px;
+			pointer-events: none;
+		}
+
+		/* Legend Font Style */
+		body {
+			font: 11px sans-serif;
+		}
+
+		/* Legend Position Style */
+		.legend {
+			position: absolute;
+			left: 800px;
+			top: 350px;
+		}
+	</style>
+
+	<script type="text/javascript">
+
+		function plotStates() {
+
+			// Load in my states data!
+			d3.csv("states.csv", function (data) {
+				console.log("Before: ", data);
+				var year = document.getElementById('year').value;
+				var month = document.getElementById('month').value;
+				data = data.filter(d => (d.year == year) & (d.month == month));
+				console.log("After: ", data, data.length);
+
+				// color.domain([0, 1, 2, 3]); // setting the range of the input data
+				color.domain([0, 1, 2]);
+
+
+				// Load GeoJSON data and merge with states data
+				d3.json("us-states.json", function (json) {
+
+					// Loop through each state data value in the .csv file
+					for (var i = 0; i < data.length; i++) {
+
+						// Grab State Name
+						var dataState = data[i].state_name;
+
+						// Grab data value 
+						var dataValue = data[i].std_sentiment;
+
+						// Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+							var jsonState = json.features[j].properties.name;
+
+							if (dataState == jsonState) {
+
+								// Copy the data value into the JSON
+								json.features[j].properties['sentiment'] = dataValue;
+
+								// Stop looking through the JSON
+								break;
+							}
+						}
+					}
+					console.log('Features: ', json.features);
+
+					// Bind the data to the SVG and create one path per GeoJSON feature
+					svg.selectAll("path")
+						.data(json.features)
+						.enter()
+						.append("path")
+						.attr("d", path)
+						.style("stroke", "#fff")
+						.style("stroke-width", "1")
+						.style("fill", (d) => {
+							// Get data value
+							var value = d.properties.sentiment;
+							if (value) {
+								temp = value * 255  
+								temp2 = 255-temp
+								return "rgb(" + temp2 + "," + temp + ", 0, 0.5)"
+							}
+							else{
+								return "grey"
+							}
+
+							// if (value == 0.0) {
+							// 	return "rgb(50 ,50, 50, 0.5)"
+							// } else if (value > 0.0) {
+							// 	temp = value * 255 + (255 - value * 255) * 0.2
+							// 	return "rgb(0," + temp + ",0, 0.5)"
+							// }
+							// else if (value < 0.0) {
+							// 	temp = -value * 255 + (255 + value * 255) * 0.2
+							// 	return "rgb(" + temp + ", 0, 0, 0.5)"
+							// }
+							// else {
+							// 	// Default: Grey
+							// 	return "rgb(213,222,217)";
+							// }
+						})
+						.on('click', function (d) {
+							var year = document.getElementById('year').value;
+							var month = document.getElementById('month').value;
+							state_data = data.filter(c => c.state_name == d.properties.name & (c.year == year) & (c.month == month))
+							var pos_sentiments = 0;
+							var neg_sentitments = 0;
+							for (var i = 0; i < state_data.length; i++) {
+								if (state_data[i].sentiment > 0) {
+									pos_sentiments += 1;
+								} else {
+									neg_sentitments += 1;
+								}
+							}
+							document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
+							console.log(d);
+						});
+
+					// plotPoints();
+
+					var legend = d3.select("body").append("svg")
+						.attr("class", "legend")
+						.attr("width", 140)
+						.attr("height", 200)
+						.selectAll("g")
+						.data(color.domain().slice())
+						.enter()
+						.append("g")
+						.attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+
+					legend.append("rect")
+						.attr("width", 18)
+						.attr("height", 18)
+						.style("fill", color);
+
+					legend.append("text")
+						.data(legendText)
+						.attr("x", 24)
+						.attr("y", 9)
+						.attr("dy", ".35em")
+						.text(function (d) { return d; });
+				});
+
+			});
+		}
+
+		function plotPoints() {
+			var colors = new Object({
+				"1": "green",
+				"-1": "red",
+				"0": "blue"
+			})
+
+			d3.selectAll("circle").remove();
+			var year = document.getElementById('year').value;
+			var month = document.getElementById('month').value;
+			// var state = document.getElementById('states').value;
+			console.log("Printing value for: " + year + "-" + month);
+			d3.csv("cities.csv", function (data) {
+				console.log("Original data points: " + data.length);
+				data = data.filter(d => projection([d.x_loc, d.y_loc]) != null & (d.year == year) & (d.month == month));
+				console.log("Year data points: " + data.length);
+				svg.selectAll("circle")
+					.data(data)
+					.enter()
+					.append("circle")
+					.attr("cx", function (d) {
+						return projection([d.x_loc, d.y_loc])[0];
+					})
+					.attr("cy", function (d) {
+						return projection([d.x_loc, d.y_loc])[1];
+					})
+					.attr("r", function (d) {
+						return 2;
+					})
+					.style("fill", (d) => ((d.sentiment == 0.0) ? "yellow" : (d.sentiment > 0.0) ? "green" : "red"))
+					.style("opacity", 0.85)
+
+				// fade out tooltip on mouse out
+				// if (d.sentiment == 0.0){"yellow"}
+				// 		else if (d.sentiment)               
+
+			});
+
+		}
+
+	</script>
+</head>
+
+<body>
+	<script type="text/javascript">
+
+		//Width and height of map
+		var width = 960;
+		var height = 500;
+
+		// D3 Projection
+		var projection = d3.geo.albersUsa()
+			.translate([width / 2, height / 2])    // translate to center of screen
+			.scale([1000]);          // scale things down so see entire US
+
+		// // Define path generator
+		var path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
+			.projection(projection);  // tell path generator to use albersUsa projection
+
+		//Create SVG element and append map to the SVG
+		var svg = d3.select("body")
+			.append("svg")
+			.attr("width", width)
+			.attr("height", height);
+
+		// Define linear scale for output
+		var color = d3.scale.linear()
+			.range(["green", "yellow", "red"]);
+		// .range(["rgb(213,222,217)", "rgb(69,173,168)", "rgb(84,36,55)", "rgb(217,91,67)"]);
+
+		// var legendText = ["Cities Lived", "States Lived", "States Visited", "Nada"];
+		var legendText = ['Positive', 'Neutral', 'Negative'];
+
+		// Append Div for tooltip to SVG
+		var div = d3.select("body")
+			.append("div")
+			.attr("class", "tooltip")
+			.style("opacity", 0);
+
+		plotStates();
+
+
+	</script>
+	<select id="year">
+		<!-- <option value="2021">2021</option> -->
+		<option value="2020">2020</option>
+		<option value="2021">2021</option>
+	</select>
+
+	<select id="month">
+		<!-- <option value="1">Jan</option> -->
+		<option value="10">Oct</option>
+		<option value="12">Dec</option>
+		<option value="3">Mar</option>
+		<option value="2">Feb</option>
+		<!-- <option value="3">Mar</option> -->
+		<option value="4">Apr</option>
+		<option value="5">May</option>
+		<option value="6">Jun</option>
+		<option value="7">Jul</option>
+		<option value="8">Aug</option>
+		<option value="9">Sep</option>
+		<option value="10">Oct</option>
+		<option value="11">Nov</option>
+		<option value="12">Dec</option>
+	</select>
+
+	<!-- <select id="states">
+		<option value="AL">Alabama</option>
+		<option value="AK">Alaska</option>
+		<option value="AZ">Arizona</option>
+		<option value="AR">Arkansas</option>
+		<option value="CA">California</option>
+		<option value="CO">Colorado</option>
+		<option value="CT">Connecticut</option>
+		<option value="DE">Delaware</option>
+		<option value="DC">District Of Columbia</option>
+		<option value="FL">Florida</option>
+		<option value="GA">Georgia</option>
+		<option value="HI">Hawaii</option>
+		<option value="ID">Idaho</option>
+		<option value="IL">Illinois</option>
+		<option value="IN">Indiana</option>
+		<option value="IA">Iowa</option>
+		<option value="KS">Kansas</option>
+		<option value="KY">Kentucky</option>
+		<option value="LA">Louisiana</option>
+		<option value="ME">Maine</option>
+		<option value="MD">Maryland</option>
+		<option value="MA">Massachusetts</option>
+		<option value="MI">Michigan</option>
+		<option value="MN">Minnesota</option>
+		<option value="MS">Mississippi</option>
+		<option value="MO">Missouri</option>
+		<option value="MT">Montana</option>
+		<option value="NE">Nebraska</option>
+		<option value="NV">Nevada</option>
+		<option value="NH">New Hampshire</option>
+		<option value="NJ">New Jersey</option>
+		<option value="NM">New Mexico</option>
+		<option value="NY">New York</option>
+		<option value="NC">North Carolina</option>
+		<option value="ND">North Dakota</option>
+		<option value="OH">Ohio</option>
+		<option value="OK">Oklahoma</option>
+		<option value="OR">Oregon</option>
+		<option value="PA">Pennsylvania</option>
+		<option value="RI">Rhode Island</option>
+		<option value="SC">South Carolina</option>
+		<option value="SD">South Dakota</option>
+		<option value="TN">Tennessee</option>
+		<option value="TX">Texas</option>
+		<option value="UT">Utah</option>
+		<option value="VT">Vermont</option>
+		<option value="VA">Virginia</option>
+		<option value="WA">Washington</option>
+		<option value="WV">West Virginia</option>
+		<option value="WI">Wisconsin</option>
+		<option value="WY">Wyoming</option>
+	</select> -->
+
+	<input type="submit" value="States Sentiment" onclick="plotStates()" />
+	<input type="submit" value="Granular Sentiment" onclick="plotPoints()" />
+
+	<br />
+	<h1 id="info">USA Map</h1>
+
+</body>
+
+</html>
