@@ -80,11 +80,12 @@
                             }
                         }
                     }
-
+                    count=0
                     for (var j = 0; j < json.features.length; j++) {
                         if (json.features[j].properties.name==state){
-                            state_id=parseInt(json.features[j].id)-1;
+                            state_id=count;
                         }
+                        count+=1
                     }
 
                     console.log('Features: ', json.features);
