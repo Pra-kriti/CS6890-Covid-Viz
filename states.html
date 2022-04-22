@@ -47,7 +47,7 @@
                 var year = document.getElementById('year').value;
                 var month = document.getElementById('month').value;
                 var state = document.getElementById('states').value;
-                data = data.filter(d => (d.year == year) & (d.month == month) & (d.state == month));
+                data = data.filter(d => (d.year == year) & (d.month == month) & (d.state_name == state));
                 console.log("After: ", data, data.length);
 
                 // color.domain([0, 1, 2, 3]); // setting the range of the input data
@@ -98,7 +98,18 @@
                         .attr("d", path)
                         .style("stroke", "#fff")
                         .style("stroke-width", "1")
-                        .style("fill", "#000")
+                        .style("fill", (d) => {
+							// Get data value
+							var value = d.properties.sentiment;
+							if (value) {
+								temp = value * 255  
+								temp2 = 255-temp
+								return "rgb(" + temp2 + "," + temp + ", 0, 0.5)"
+							}
+							else{
+								return "grey"
+							}
+						})
                         .on('click', function (d) {
                             var year = document.getElementById('year').value;
                             var month = document.getElementById('month').value;
@@ -116,7 +127,7 @@
                             console.log(d);
                         });
 
-                    // plotPoints();
+                    plotPoints();
 
                     var legend = d3.select("body").append("svg")
                         .attr("class", "legend")
@@ -151,15 +162,15 @@
 				"0": "blue"
 			})
 
-			d3.selectAll("circle").remove();
-			var year = document.getElementById('year').value;
-			var month = document.getElementById('month').value;
-			// var state = document.getElementById('states').value;
-			console.log("Printing value for: " + year + "-" + month);
-			d3.csv("cities.csv", function (data) {
-				console.log("Original data points: " + data.length);
-				data = data.filter(d => projection([d.x_loc, d.y_loc]) != null & (d.year == year) & (d.month == month));
+			d3.csv("cities2.csv", function (data) {
+				console.log("Original data points: " + data[0].x_loc);
+				var year = document.getElementById('year').value;
+				var month = document.getElementById('month').value;
+				var state = document.getElementById('states').value;
+				console.log("Printing value for: " + year + "-" + month+ "-" + state);
+				data = data.filter(d => (projection([d.x_loc, d.y_loc]) != null) & (d.year == year) & (d.month == month) & (d.state_name == state));
 				console.log("Year data points: " + data.length);
+				d3.selectAll("circle").remove();
 				svg.selectAll("circle")
 					.data(data)
 					.enter()
@@ -191,13 +202,13 @@
 	<script type="text/javascript">
 
 		//Width and height of map
-		var width = 960;
-		var height = 500;
+		var width = 300;
+		var height = 300;
 
 		// D3 Projection
 		var projection = d3.geo.albersUsa()
-			.translate([width / 2, height / 2])    // translate to center of screen
-			.scale([1000]);          // scale things down so see entire US
+			.translate([width*(0.188155-0.5), height*(0.323633-0.5)])    // translate to center of screen
+			.scale([2000]);          // scale things down so see entire US
 
 		// // Define path generator
 		var path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
@@ -302,8 +313,7 @@
 		<option value="Wyoming">Wyoming</option>
 	</select>
 
-	<input type="submit" value="States Sentiment" onclick="plotStates()" />
-	<input type="submit" value="Granular Sentiment" onclick="plotPoints()" />
+	<!-- <input type="submit" value="Granular Sentiment" onclick="plotPoints()" /> -->
     <input type="submit" value="State" onclick="plotSingleState()" />
 
 	<br />
