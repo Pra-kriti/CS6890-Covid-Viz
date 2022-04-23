@@ -24,17 +24,133 @@
 			pointer-events: none;
 		}
 
-		/* Legend Font Style */
+		@import url('https://fonts.googleapis.com/css?family=Open+Sans|Playfair+Display+SC');
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		a {
+			text-decoration: none;
+			color: inherit;
+		}
 		body {
-			font: 11px sans-serif;
+			font: normal 11px 'Open Sans', sans-serif;
+			background: rgb(238, 238, 238);
+			color: #333;
+			overflow: hidden;
+		}
+		main {
+			min-height: 10vh;
+		}
+		header {
+			background: white;
+			box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+		}
+		h1 {
+			font: normal 4em 'Playfair Display SC', serif;
+			text-align: center;
+		}
+		nav {
+			max-width: 800px;
+			margin: auto;
+			display: flex;
+			flex-wrap: wrap;
+		}
+		nav a {
+			flex-grow: 1;
+			text-align: center;
+			padding: 1em;
+			position: relative;
+		}
+		nav a::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			transform: scaleX(0);
+			background: #333;
+			transition: 0.7s transform cubic-bezier(0.06, 0.9, 0.28, 1);
+		}
+		nav a:hover::after {
+			transform: scaleX(1);
 		}
 
 		/* Legend Position Style */
 		.legend {
 			position: absolute;
-			left: 800px;
-			top: 350px;
+			left: 500px;
+			top: 550px;
 		}
+
+		select {
+			/* Reset */
+			appearance: none;
+			border: 0;
+			outline: 0;
+			font: inherit;
+			font-size: 14;
+			/* Personalize */
+			width: 10em;
+			height: 3em;
+			padding: 0 4em 0 1em;
+			background: url(https://upload.wikimedia.org/wikipedia/commons/9/9d/Caret_down_font_awesome_whitevariation.svg) no-repeat right 0.8em center / 1.4em, linear-gradient(to left, rgba(255, 255, 255, 0.3) 3em, rgba(255, 255, 255, 0.2) 3em);
+			color: rgb(0, 0, 0);
+			border-radius: 0.25em;
+			box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+			cursor: pointer;
+			/* <option> colors */
+		}
+		select option {
+			color: inherit;
+			background-color: rgb(196, 247, 255);
+			/* Remove focus outline */
+		}
+		select:focus {
+			outline: none;
+			/* Remove IE arrow */
+		}
+		select::-ms-expand {
+			display: none;
+		}
+
+		input[type=submit] {
+			background-color:rgb(87, 224, 255);
+			border: 0;
+			border-radius: 2px;
+			cursor: pointer;
+			color: #fff;
+			font-size:14px;
+			font-weight: bold;
+			line-height: 1.4;
+			padding: 5px;
+			width: 70px
+		}
+
+		input:focus {
+			outline: none;
+		}
+
+		input.slide-hover-left-1 {
+			background-image: linear-gradient(0, #323cff, #323cff);
+			background-size: 0;
+			transition: .8s;
+			background-repeat: no-repeat;
+		}
+
+		input.slide-hover-left-1:hover {
+			background-size: 100%;
+			color: #fff;
+		}
+
+		.container {
+			height: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
 	</style>
 
 	<script type="text/javascript">
@@ -90,66 +206,95 @@
 
                     console.log('Features: ', json.features);
                     // Bind the data to the SVG and create one path per GeoJSON feature
-                    svg.selectAll("path").remove();
-                    svg.selectAll("path")
-                        .data([json.features[state_id]])
-                        .enter()
-                        .append("path")
-                        .attr("d", path)
-                        .style("stroke", "#fff")
-                        .style("stroke-width", "1")
-                        .style("fill", (d) => {
-							// Get data value
-							var value = d.properties.sentiment;
-							if (value) {
-								temp = value * 255  
-								temp2 = 255-temp
-								return "rgb(" + temp2 + "," + temp + ", 0, 0.5)"
-							}
-							else{
-								return "grey"
-							}
-						})
-                        .on('click', function (d) {
-                            var year = document.getElementById('year').value;
-                            var month = document.getElementById('month').value;
-                            state_data = data.filter(c => c.state_name == d.properties.name & (c.year == year) & (c.month == month))
-                            var pos_sentiments = 0;
-                            var neg_sentitments = 0;
-                            for (var i = 0; i < state_data.length; i++) {
-                                if (state_data[i].sentiment > 0) {
-                                    pos_sentiments += 1;
-                                } else {
-                                    neg_sentitments += 1;
-                                }
-                            }
-                            document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
-                            console.log(d);
-                        });
 
-                    plotPoints();
+					d3.csv("centers.csv", function (data) {
+						console.log("Here: " + data[0].x);
+						var state = document.getElementById('states').value;
+						console.log("There: "+ state);
+						data = data.filter(d => (d.state == state));
+						console.log("Data: " + data[0].x);
 
-                    var legend = d3.select("body").append("svg")
-                        .attr("class", "legend")
-                        .attr("width", 140)
-                        .attr("height", 200)
-                        .selectAll("g")
-                        .data(color.domain().slice())
-                        .enter()
-                        .append("g")
-                        .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+						var width = 600;
+						var height = 500;
 
-                    legend.append("rect")
-                        .attr("width", 18)
-                        .attr("height", 18)
-                        .style("fill", color);
+						scale_value=2300;
 
-                    legend.append("text")
-                        .data(legendText)
-                        .attr("x", 24)
-                        .attr("y", 9)
-                        .attr("dy", ".35em")
-                        .text(function (d) { return d; });
+						if (state=='Alaska'){
+							scale_value=1000
+						}
+
+						projection = d3.geo.albers()
+							.center([data[0].x, data[0].y])
+							.translate([width/2, height/2])    // translate to center of screen
+							.scale([scale_value]);
+
+						path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
+							.projection(projection);
+
+						svg.selectAll("path").remove();
+						svg.selectAll("path")
+							.data([json.features[state_id]])
+							.enter()
+							.append("path")
+							.attr("d", path)
+							.style("stroke", "#fff")
+							.style("stroke-width", "1")
+							.style("fill", (d) => {
+								// Get data value
+								var value = d.properties.sentiment;
+								if (value) {
+									temp = value * 255  
+									temp2 = 255-temp
+									return "rgb(" + temp2 + "," + temp + ", 0, 0.5)"
+								}
+								else{
+									return "grey"
+								}
+							})
+							.on('click', function (d) {
+								var year = document.getElementById('year').value;
+								var month = document.getElementById('month').value;
+								state_data = data.filter(c => c.state_name == d.properties.name & (c.year == year) & (c.month == month))
+								var pos_sentiments = 0;
+								var neg_sentitments = 0;
+								for (var i = 0; i < state_data.length; i++) {
+									if (state_data[i].sentiment > 0) {
+										pos_sentiments += 1;
+									} else {
+										neg_sentitments += 1;
+									}
+								}
+								document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
+								console.log(d);
+							});
+
+						plotPoints();
+
+						var legend = d3.select("body").append("svg")
+							.attr("class", "legend")
+							.attr("width", 140)
+							.attr("height", 200)
+							.selectAll("g")
+							.data(color.domain().slice())
+							.enter()
+							.append("g")
+							.attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+
+						legend.append("rect")
+							.attr("width", 18)
+							.attr("height", 18)
+							.style("fill", color);
+
+						legend.append("text")
+							.data(legendText)
+							.attr("x", 24)
+							.attr("y", 9)
+							.attr("dy", ".35em")
+							.text(function (d) { return d; });
+					
+					});
+					
+                    
                 });
 
             });
@@ -198,21 +343,107 @@
 	</script>
 </head>
 
+<main>
+	<header>
+		<h1>Understanding the User Sentiment on COVID-19</h1>
+		<nav>
+			<a style="font-size: 14px;" href="/">USA Sentiment</a>
+			<a style="font-size: 14px;" href="/states.html">Statewise Sentiment</a>
+			<a style="font-size: 14px;" href="#">Twitter vs Reddit</a>
+		</nav>
+	</header>
+</main>
+
 <body>
+	<br>
+	<h2 style="text-align: center;">State Wise Sentiment Map and Frequent Words</h2>
+	<br>
+	<div class="container">
+		<select style="text-align: center; " id="year">
+			<!-- <option value="2021">2021</option> -->
+			<option value="2020">2020</option>
+			<option value="2021" selected>2021</option>
+		</select>
+
+		<select style="text-align: center; " id="month">
+			<option value="1">Jan</option>
+			<option value="2">Feb</option>
+			<option value="3">Mar</option>
+			<option value="4">Apr</option>
+			<option value="5">May</option>
+			<option value="6">Jun</option>
+			<option value="7">Jul</option>
+			<option value="8">Aug</option>
+			<option value="9">Sep</option>
+			<option value="10">Oct</option>
+			<option value="11">Nov</option>
+			<option value="12" selected>Dec</option>
+		</select>
+
+		<select style="text-align: center; " id="states">
+			<option value="Alabama">Alabama</option>
+			<option value="Alaska">Alaska</option>
+			<option value="Arizona">Arizona</option>
+			<option value="Arkansas">Arkansas</option>
+			<option value="California">California</option>
+			<option value="Colorado">Colorado</option>
+			<option value="Connecticut">Connecticut</option>
+			<option value="Delaware">Delaware</option>
+			<option value="District Of Columbia">District Of Columbia</option>
+			<option value="Florida">Florida</option>
+			<option value="Georgia">Georgia</option>
+			<option value="Hawaii">Hawaii</option>
+			<option value="Idaho">Idaho</option>
+			<option value="Illinois">Illinois</option>
+			<option value="Indiana">Indiana</option>
+			<option value="Iowa">Iowa</option>
+			<option value="Kansas">Kansas</option>
+			<option value="Kentucky">Kentucky</option>
+			<option value="Louisiana">Louisiana</option>
+			<option value="Maine">Maine</option>
+			<option value="Maryland">Maryland</option>
+			<option value="Massachusetts">Massachusetts</option>
+			<option value="Michigan">Michigan</option>
+			<option value="Minnesota">Minnesota</option>
+			<option value="Mississippi">Mississippi</option>
+			<option value="Missouri">Missouri</option>
+			<option value="Montana">Montana</option>
+			<option value="Nebraska">Nebraska</option>
+			<option value="Nevada">Nevada</option>
+			<option value="New Hampshire">New Hampshire</option>
+			<option value="New Jersey">New Jersey</option>
+			<option value="New Mexico">New Mexico</option>
+			<option value="New York">New York</option>
+			<option value="North Carolina">North Carolina</option>
+			<option value="North Dakota">North Dakota</option>
+			<option value="Ohio">Ohio</option>
+			<option value="Oklahoma">Oklahoma</option>
+			<option value="Oregon">Oregon</option>
+			<option value="Pennsylvania">Pennsylvania</option>
+			<option value="Rhode Island">Rhode Island</option>
+			<option value="South Carolina">South Carolina</option>
+			<option value="South Dakota">South Dakota</option>
+			<option value="Tennessee">Tennessee</option>
+			<option value="Texas">Texas</option>
+			<option value="Utah" selected>Utah</option>
+			<option value="Vermont">Vermont</option>
+			<option value="Virginia">Virginia</option>
+			<option value="Washington">Washington</option>
+			<option value="West Virginia">West Virginia</option>
+			<option value="Wisconsin">Wisconsin</option>
+			<option value="Wyoming">Wyoming</option>
+		</select>
+
+		<!-- <input type="submit" value="Granular Sentiment" onclick="plotPoints()" /> -->
+		<input style="text-align: center; " class="slide-hover-left-1" type="submit" value="Go" onclick="plotSingleState()" />
+	</div>
+	<br>
+
 	<script type="text/javascript">
 
 		//Width and height of map
-		var width = 300;
-		var height = 300;
-
-		// D3 Projection
-		var projection = d3.geo.albersUsa()
-			.translate([width*(0.188155-0.5), height*(0.323633-0.5)])    // translate to center of screen
-			.scale([2000]);          // scale things down so see entire US
-
-		// // Define path generator
-		var path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
-			.projection(projection);  // tell path generator to use albersUsa projection
+		var width = 600;
+		var height = 500;
 
 		//Create SVG element and append map to the SVG
 		var svg = d3.select("body")
@@ -238,86 +469,6 @@
 
 
 	</script>
-	<select id="year">
-		<!-- <option value="2021">2021</option> -->
-		<option value="2020">2020</option>
-		<option value="2021">2021</option>
-	</select>
-
-	<select id="month">
-		<option value="1">Jan</option>
-		<option value="2">Feb</option>
-		<option value="3">Mar</option>
-		<option value="4">Apr</option>
-		<option value="5">May</option>
-		<option value="6">Jun</option>
-		<option value="7">Jul</option>
-		<option value="8">Aug</option>
-		<option value="9">Sep</option>
-		<option value="10">Oct</option>
-		<option value="11">Nov</option>
-		<option value="12">Dec</option>
-	</select>
-
-	<select id="states">
-		<option value="Alabama">Alabama</option>
-		<option value="Alaska">Alaska</option>
-		<option value="Arizona">Arizona</option>
-		<option value="Arkansas">Arkansas</option>
-		<option value="California">California</option>
-		<option value="Colorado">Colorado</option>
-		<option value="Connecticut">Connecticut</option>
-		<option value="Delaware">Delaware</option>
-		<option value="District Of Columbia">District Of Columbia</option>
-		<option value="Florida">Florida</option>
-		<option value="Georgia">Georgia</option>
-		<option value="Hawaii">Hawaii</option>
-		<option value="Idaho">Idaho</option>
-		<option value="Illinois">Illinois</option>
-		<option value="Indiana">Indiana</option>
-		<option value="Iowa">Iowa</option>
-		<option value="Kansas">Kansas</option>
-		<option value="Kentucky">Kentucky</option>
-		<option value="Louisiana">Louisiana</option>
-		<option value="Maine">Maine</option>
-		<option value="Maryland">Maryland</option>
-		<option value="Massachusetts">Massachusetts</option>
-		<option value="Michigan">Michigan</option>
-		<option value="Minnesota">Minnesota</option>
-		<option value="Mississippi">Mississippi</option>
-		<option value="Missouri">Missouri</option>
-		<option value="Montana">Montana</option>
-		<option value="Nebraska">Nebraska</option>
-		<option value="Nevada">Nevada</option>
-		<option value="New Hampshire">New Hampshire</option>
-		<option value="New Jersey">New Jersey</option>
-		<option value="New Mexico">New Mexico</option>
-		<option value="New York">New York</option>
-		<option value="North Carolina">North Carolina</option>
-		<option value="North Dakota">North Dakota</option>
-		<option value="Ohio">Ohio</option>
-		<option value="Oklahoma">Oklahoma</option>
-		<option value="Oregon">Oregon</option>
-		<option value="Pennsylvania">Pennsylvania</option>
-		<option value="Rhode Island">Rhode Island</option>
-		<option value="South Carolina">South Carolina</option>
-		<option value="South Dakota">South Dakota</option>
-		<option value="Tennessee">Tennessee</option>
-		<option value="Texas">Texas</option>
-		<option value="Utah">Utah</option>
-		<option value="Vermont">Vermont</option>
-		<option value="Virginia">Virginia</option>
-		<option value="Washington">Washington</option>
-		<option value="West Virginia">West Virginia</option>
-		<option value="Wisconsin">Wisconsin</option>
-		<option value="Wyoming">Wyoming</option>
-	</select>
-
-	<!-- <input type="submit" value="Granular Sentiment" onclick="plotPoints()" /> -->
-    <input type="submit" value="State" onclick="plotSingleState()" />
-
-	<br />
-	<h1 id="info">USA Map</h1>
 
 </body>
 
