@@ -37,6 +37,8 @@
 			font: normal 11px 'Open Sans', sans-serif;
 			background: rgb(238, 238, 238);
 			color: #333;
+			justify-content: center;
+			align-items: center;
 			overflow: hidden;
 		}
 		main {
@@ -151,9 +153,48 @@
 			justify-content: center;
 		}
 
+		svg{
+			margin-left:8%;
+		}
+
 	</style>
 
 	<script type="text/javascript">
+		function makeWordCloud() {
+
+			function getWords(vis) {
+				d3.json("states.json", function (data) {
+
+					console.log(data);
+					var year = document.getElementById('year').value;
+					var month = document.getElementById('month').value;
+					var state = document.getElementById('states').value;
+					data = data.filter(d => (d.year == year) & (d.month == month) & (d.state_name == state));
+					var words = data[0]['freq_words'];
+					if (words) {
+						var max = Math.max(...words.map(d => d.size));
+						console.log("Max value: ", max);
+						data = words.map(function (d) {
+							console.log(10 + d.size / max * 60);
+							return { text: d.text, size: 10 + d.size / max * 60 };
+						});
+
+						vis.update(data);
+					}
+					else{
+						
+					}
+				});
+			}
+
+			//Create a new instance of the word cloud visualisation.
+			var myWordCloud = wordCloud('body');
+
+			getWords(myWordCloud);
+
+			plotSingleState()
+		}
+
         function plotSingleState() {
 
 
@@ -267,8 +308,8 @@
 								document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
 								console.log(d);
 							});
-
 						plotPoints();
+						
 
 						var legend = d3.select("body").append("svg")
 							.attr("class", "legend")
@@ -291,7 +332,6 @@
 							.attr("y", 9)
 							.attr("dy", ".35em")
 							.text(function (d) { return d; });
-					
 					});
 					
                     
@@ -349,7 +389,7 @@
 		<nav>
 			<a style="font-size: 14px;" href="/">USA Sentiment</a>
 			<a style="font-size: 14px;" href="/states.html">Statewise Sentiment</a>
-			<a style="font-size: 14px;" href="#">Twitter vs Reddit</a>
+			<a style="font-size: 14px;" href="/compare.html">Twitter vs Reddit</a>
 		</nav>
 	</header>
 </main>
@@ -435,10 +475,10 @@
 		</select>
 
 		<!-- <input type="submit" value="Granular Sentiment" onclick="plotPoints()" /> -->
-		<input style="text-align: center; " class="slide-hover-left-1" type="submit" value="Go" onclick="plotSingleState()" />
+		<input style="text-align: center;" class="slide-hover-left-1" type="submit" value="Go" onclick="makeWordCloud()" />
 	</div>
 	<br>
-
+	<div style="margin-left: 40%;">
 	<script type="text/javascript">
 
 		//Width and height of map
@@ -464,11 +504,72 @@
 			.append("div")
 			.attr("class", "tooltip")
 			.style("opacity", 0);
-
-        plotSingleState();
-
-
 	</script>
+
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
+	<script>
+		var svg2 = d3.select('body').append("svg")
+			.attr("width", 600)
+			.attr("height", 500)
+			.append("g")
+			.attr("transform", "translate(250,250)");
+
+		function wordCloud(selector) {
+
+			var fill = d3.scale.category20();
+
+			//Draw the word cloud
+			function draw(words) {
+				var cloud = svg2.selectAll("g text")
+					.data(words, function (d) { return d.text; })
+
+				//Entering words
+				cloud.enter()
+					.append("text")
+					.style("font-family", "Impact")
+					.style("fill", function (d, i) { return fill(i); })
+					.attr("text-anchor", "middle")
+					.attr('font-size', 1)
+					.text(function (d) { return d.text; });
+
+				//Entering and existing words
+				cloud
+					.transition()
+					.duration(600)
+					.style("font-size", function (d) { return d.size + "px"; })
+					.attr("transform", function (d) {
+						return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+					})
+					.style("fill-opacity", 1);
+
+				//Exiting words
+				cloud.exit()
+					.transition()
+					.duration(200)
+					.style('fill-opacity', 1e-6)
+					.attr('font-size', 1)
+					.remove();
+			}
+
+			return {
+				update: function (words) {
+					d3.selectAll("text").remove();
+					d3.layout.cloud().size([500, 500])
+						.words(words)
+						.padding(5)
+						.rotate(function () { return ~~(Math.random() * 2) * 90; })
+						.font("Impact")
+						.fontSize(function (d) { return d.size; })
+						.on("end", draw)
+						.start();
+				}
+			}
+
+		}
+		makeWordCloud();
+	</script>
+	</div>
 
 </body>
 
