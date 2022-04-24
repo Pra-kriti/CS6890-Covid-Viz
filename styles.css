@@ -56,11 +56,11 @@
 } */
 
 input:checked + .slider {
-  background-color: #2196F3;
+  background-color: #24282b;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+  box-shadow: 0 0 1px #11212e;
 }
 
 input:checked + .slider:before {
@@ -158,7 +158,7 @@ div.tooltip-map {
 			border: 0;
 			outline: 0;
 			font: inherit;
-			font-size: 14;
+			font-size: 35;
 			/* Personalize */
 			width: 10em;
 			height: 3em;
@@ -184,12 +184,12 @@ div.tooltip-map {
 		}
 
 		input[type=submit] {
-			background-color:rgb(87, 224, 255);
+			background-color:#404041;
 			border: 0;
 			border-radius: 2px;
 			cursor: pointer;
 			color: #fff;
-			font-size:14px;
+			font-size:16px;
 			font-weight: bold;
 			line-height: 1.4;
 			padding: 5px;
@@ -201,7 +201,7 @@ div.tooltip-map {
 		}
 
 		input.slide-hover-left-1 {
-			background-image: linear-gradient(0, #323cff, #323cff);
+			background-image: linear-gradient(0, #000000, #000000);
 			background-size: 0;
 			transition: .8s;
 			background-repeat: no-repeat;

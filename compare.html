@@ -2,7 +2,163 @@
 <meta charset="utf-8">
 
 <head>
-    <script type="text/javascript">
+	<meta charset="utf-8">
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<style type="text/css">
+		/* On mouse hover, lighten state color */
+		path:hover {
+			fill-opacity: .7;
+		}
+        /* Style for Custom Tooltip */
+		div.tooltip {
+			position: absolute;
+			text-align: center;
+			width: 60px;
+			height: 28px;
+			padding: 2px;
+			font: 12px sans-serif;
+			background: white;
+			border: 0px;
+			border-radius: 8px;
+			pointer-events: none;
+		}
+
+		@import url('https://fonts.googleapis.com/css?family=Open+Sans|Playfair+Display+SC');
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		a {
+			text-decoration: none;
+			color: inherit;
+		}
+		body {
+			font: normal 11px 'Open Sans', sans-serif;
+			background: rgb(238, 238, 238);
+			color: #333;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+		}
+		main {
+			min-height: 10vh;
+		}
+		header {
+			background: white;
+			box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+		}
+		h1 {
+			font: normal 4em 'Playfair Display SC', serif;
+			text-align: center;
+		}
+		nav {
+			max-width: 800px;
+			margin: auto;
+			display: flex;
+			flex-wrap: wrap;
+		}
+		nav a {
+			flex-grow: 1;
+			text-align: center;
+			padding: 1em;
+			position: relative;
+		}
+		nav a::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			transform: scaleX(0);
+			background: #333;
+			transition: 0.7s transform cubic-bezier(0.06, 0.9, 0.28, 1);
+		}
+		nav a:hover::after {
+			transform: scaleX(1);
+		}
+
+		/* Legend Position Style */
+		.legend {
+			position: absolute;
+			left: 500px;
+			top: 550px;
+		}
+
+		select {
+			/* Reset */
+			appearance: none;
+			border: 0;
+			outline: 0;
+			font: inherit;
+			font-size: 14;
+			/* Personalize */
+			width: 10em;
+			height: 3em;
+			padding: 0 4em 0 1em;
+			background: url(https://upload.wikimedia.org/wikipedia/commons/9/9d/Caret_down_font_awesome_whitevariation.svg) no-repeat right 0.8em center / 1.4em, linear-gradient(to left, rgba(255, 255, 255, 0.3) 3em, rgba(255, 255, 255, 0.2) 3em);
+			color: rgb(0, 0, 0);
+			border-radius: 0.25em;
+			box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+			cursor: pointer;
+			/* <option> colors */
+		}
+		select option {
+			color: inherit;
+			background-color: rgb(190, 190, 190);
+			/* Remove focus outline */
+		}
+		select:focus {
+			outline: none;
+			/* Remove IE arrow */
+		}
+		select::-ms-expand {
+			display: none;
+		}
+
+		input[type=submit] {
+			background-color:#404041;
+			border: 0;
+			border-radius: 2px;
+			cursor: pointer;
+			color: #fff;
+			font-size:16px;
+			font-weight: bold;
+			line-height: 1.4;
+			padding: 5px;
+			width: 180px
+		}
+
+		input:focus {
+			outline: none;
+		}
+
+		input.slide-hover-left-1 {
+			background-image: linear-gradient(0, #000000, #000000);
+			background-size: 0;
+			transition: .8s;
+			background-repeat: no-repeat;
+		}
+
+		input.slide-hover-left-1:hover {
+			background-size: 100%;
+			color: #fff;
+		}
+
+		.container {
+			height: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		svg{
+			margin-left:8%;
+		}
+
+	</style>
+
+	<script type="text/javascript">
         function makeWordCloud() {
 
             function getWords(vis) {
@@ -74,31 +230,46 @@
             getWords(myWordCloud);
         }
     </script>
-</head>>
+</head>
+<main>
+	<header>
+		<h1>Understanding the User Sentiment on COVID-19</h1>
+		<nav>
+			<a style="font-size: 14px;" href="/">USA Sentiment</a>
+			<a style="font-size: 14px;" href="/states.html">Statewise Sentiment</a>
+			<a style="font-size: 14px;" href="/compare.html">Twitter vs Reddit</a>
+		</nav>
+	</header>
+</main>
 
 <body>
-    <select id="year">
-        <option value="2020">2020</option>
-        <option value="2021">2021</option>
-    </select>
+	<br>
+	<h2 style="text-align: center;">Word Cloud for Twitter and Reddit Frequent Words</h2>
+	<br><br>
+	<div class="container">
+		<select style="text-align: center; " id="year">
+			<option value="2020">2020</option>
+			<option value="2021" selected>2021</option>
+		</select>
 
-    <select id="month">
-        <option value="2">Feb</option>
-        <option value="3">Mar</option>
-        <option value="4">Apr</option>
-        <option value="5">May</option>
-        <option value="6">Jun</option>
-        <option value="7">Jul</option>
-        <option value="8">Aug</option>
-        <option value="9">Sep</option>
-        <option value="10">Oct</option>
-        <option value="11">Nov</option>
-        <option value="12">Dec</option>
-        <option value="1">Jan</option>
-    </select>
+		<select style="text-align: center; " id="month">
+			<option value="1">Jan</option>
+			<option value="2">Feb</option>
+			<option value="3">Mar</option>
+			<option value="4">Apr</option>
+			<option value="5">May</option>
+			<option value="6">Jun</option>
+			<option value="7">Jul</option>
+			<option value="8">Aug</option>
+			<option value="9">Sep</option>
+			<option value="10">Oct</option>
+			<option value="11">Nov</option>
+			<option value="12" selected>Dec</option>
+		</select>
 
-    <input type="submit" value="Word Cloud Visualizer" onclick="makeWordCloud()" />
-
+    <input style="text-align: center;" class="slide-hover-left-1" type="submit" value="Word Cloud Visualizer" onclick="makeWordCloud()" />
+    </div>
+    <br>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
     <script>
@@ -174,17 +345,4 @@
         }
 
         makeWordCloud();
-
-        //Some sample data - http://en.wikiquote.org/wiki/Opening_lines
-        // var words = [
-        //     "You don't know about me without you have read a book called The Adventures of Tom Sawyer but that ain't no matter.",
-        //     "The boy with fair hair lowered himself down the last few feet of rock and began to pick his way toward the lagoon.",
-        //     "When Mr. Bilbo Baggins of Bag End announced that he would shortly be celebrating his eleventy-first birthday with a party of special magnificence, there was much talk and excitement in Hobbiton.",
-        //     "It was inevitable: the scent of bitter almonds always reminded him of the fate of unrequited love."
-        // ]
-
-
-
-        //Prepare one of the sample sentences by removing punctuation,
-        // creating an array of words and computing a random size attribute
     </script>

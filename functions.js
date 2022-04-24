@@ -70,7 +70,6 @@ function plotStates() {
                     // var positivity = state_data.positivity;
                     // var neutrality = state_data.neutrality;
                     // console.log(negativity, positivity, neutrality);
-                    console.log("Kina click garis?");
                     // document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
                     // console.log("KAKA");
                     // console.log(d);
