@@ -71,7 +71,6 @@ function plotStates() {
                     // var neutrality = state_data.neutrality;
                     // console.log(negativity, positivity, neutrality);
                     // document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
-                    // console.log("KAKA");
                     // console.log(d);
                 })
                 .on('mouseover', function(d) {
@@ -81,8 +80,10 @@ function plotStates() {
                     var negativity = Math.round(state_data.negativity*100)/100;
                     var positivity = Math.round(state_data.positivity*100)/100;
                     var neutrality = Math.round(state_data.neutrality*100)/100;
-                    
-                    var tt_text =  positivity + ", " + neutrality + ", " + negativity;
+
+                    var tt_text =  "<span style='color:green'>" + "█ " + "<span style='color:black'>" + positivity 
+                                    + " " + "<span style='color:yellow'>" + "█ " + "<span style='color:black'>" + neutrality 
+                                    + " " + "<span style='color:red'>" + "█ " + "<span style='color:black'>" + negativity;
                     
                     d3.select(this).transition().duration('50').attr('opacity', '0.85');
                     div.transition().duration(50).style("opacity", 1);
