@@ -2,87 +2,106 @@
 <meta charset="utf-8">
 
 <head>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
     <script type="text/javascript">
-        function makeWordCloud() {
+
+        var twitter_svg;
+        var reddit_svg;
+        document.addEventListener('DOMContentLoaded', function () {
+           twitter_svg = d3.select('#twitter').append("svg")
+                .attr("width", 500)
+                .attr("height", 500)
+                .append("g")
+                .attr("transform", "translate(250,250)");
+
+            reddit_svg = d3.select('#reddit').append("svg")
+                .attr("width", 500)
+                .attr("height", 500)
+                .append("g")
+                .attr("transform", "translate(250,250)");
+
+            makeTwitterWordCloud();
+            makeRedditWordCloud();
+            // your code here
+        }, false);
+
+
+
+
+        function makeTwitterWordCloud() {
+
 
             function getWords(vis) {
-                // var words = [
-                //     { 'text': 'get', 'size': 10477 }, { 'text': 'people', 'size': 9291 }, { 'text': 'vaccine', 'size': 8211 }, { 'text': 'like', 'size': 6836 }, { 'text': 'i’m', 'size': 5938 }, { 'text': 'got', 'size': 5740 }, { 'text': 'it’s', 'size': 5399 }, { 'text': 'new', 'size': 5248 }, { 'text': 'one', 'size': 5038 }, { 'text': 'still', 'size': 4325 }, { 'text': 'don’t', 'size': 4047 }, { 'text': 'go', 'size': 3959 }, { 'text': 'would', 'size': 3919 }, { 'text': 'us', 'size': 3845 }, { 'text': 'know', 'size': 3795 }, { 'text': 'back', 'size': 3668 }, { 'text': 'first', 'size': 3662 }, { 'text': '-', 'size': 3660 }, { 'text': 'going', 'size': 3644 }, { 'text': 'getting', 'size': 3583 }
-                // ]
-                // return words[i]
-                //     .replace(/[!\.,:;\?]/g, '')
-                //     .split(' ')
-                //     .map(function (d) {
-                //         return { text: d, size: 10 + Math.random() * 60 };
-                //     })
-
-                d3.json("tweet_data_month.json", function (data) {
-
-                    console.log(data);
+                d3.json('tweet_data_month.json', function (data) {
+                    console.log('Twitter data: ', data);
                     var year = document.getElementById('year').value;
                     var month = document.getElementById('month').value;
                     data = data.filter(d => (d.year == year) & (d.month == month));
                     var words = data[0]['freq_words'];
-                    if (words) {
-                        var max = Math.max(...words.map(d => d.size));
-                        console.log("Max value: ", max);
-                        data = words.map(function (d) {
-                            console.log(10 + d.size / max * 60);
-                            return { text: d.text, size: 10 + d.size / max * 60 };
-                        });
 
-                        vis.update(data);
-                    }
-                    else{
-                        
-                    }
-
-
+                    var max = Math.max(...words.map(d => d.size));
+                    // console.log("Max value: ", max);
+                    data = words.map(function (d) {
+                        // console.log(10 + d.size / max * 60);
+                        return { text: d.text, size: 10 + d.size / max * 60 };
+                    });
+                    vis.update(data);
                 });
 
-
-
             }
-
-            // function getWords() {
-            //     return words;
-            // }
-
-            // console.log(getWords(0));
-
-            //This method tells the word cloud to redraw with a new set of words.
-            //In reality the new words would probably come from a server request,
-            // user input or some other source.
-            // function showNewWords(vis, i) {
-            //     i = i || 0;
-
-            //     vis.update(getWords())
-            //     // setTimeout(function () { showNewWords(vis, i + 1) }, 2000)
-            // }
-
-            // console.log("Word and Size: ", getWords());
-
-            // function showNewWords(vis) {
-            //     vis.update(getWords(3))
-            // }
-
             //Create a new instance of the word cloud visualisation.
-            var myWordCloud = wordCloud('body');
+            twitter_svg.selectAll("text").remove();
+            var myWordCloud = wordCloud(twitter_svg);
 
             //Start cycling through the demo data
-            // showNewWords(myWordCloud);
             getWords(myWordCloud);
         }
+
+        function makeRedditWordCloud() {
+            function getWords(vis) {
+                d3.json('reddit_data_month.json', function (data) {
+                    console.log("Reddit data: ", data);
+                    var year = document.getElementById('year').value;
+                    var month = document.getElementById('month').value;
+                    data = data.filter(d => (d.year == year) & (d.month == month));
+                    var words = data[0]['freq_words'];
+
+                    var max = Math.max(...words.map(d => d.size));
+                    // console.log("Max value: ", max);
+                    data = words.map(function (d) {
+                        // console.log(10 + d.size / max * 60);
+                        return { text: d.text, size: 10 + d.size / max * 60 };
+                    });
+                    vis.update(data);
+                });
+
+            }
+            //Create a new instance of the word cloud visualisation.
+            reddit_svg.selectAll("text").remove();
+            var myWordCloud = wordCloud(reddit_svg);
+
+            //Start cycling through the demo data
+            getWords(myWordCloud);
+        }
+
+        function makeWordCloud() {
+            makeTwitterWordCloud();
+            makeRedditWordCloud();
+        }
     </script>
-</head>>
+</head>
 
 <body>
-    <select id="year">
+    <div id='twitter' style="float: left;"></div>
+    <div id='reddit' style="float: right;"></div>
+    <select style="text-align: center; " id="year">
         <option value="2020">2020</option>
-        <option value="2021">2021</option>
+        <option value="2021" selected>2021</option>
     </select>
 
-    <select id="month">
+    <select style="text-align: center; " id="month">
+        <option value="1">Jan</option>
         <option value="2">Feb</option>
         <option value="3">Mar</option>
         <option value="4">Apr</option>
@@ -93,26 +112,22 @@
         <option value="9">Sep</option>
         <option value="10">Oct</option>
         <option value="11">Nov</option>
-        <option value="12">Dec</option>
-        <option value="1">Jan</option>
+        <option value="12" selected>Dec</option>
     </select>
 
     <input type="submit" value="Word Cloud Visualizer" onclick="makeWordCloud()" />
-
-    <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
     <script>
-        var svg = d3.select('body').append("svg")
-            .attr("width", 500)
-            .attr("height", 500)
-            .append("g")
-            .attr("transform", "translate(250,250)");
+
 
         //Simple animated example of d3-cloud - https://github.com/jasondavies/d3-cloud
         //Based on https://github.com/jasondavies/d3-cloud/blob/master/examples/simple.html
 
         // Encapsulate the word cloud functionality
-        function wordCloud(selector) {
+        function wordCloud(svg) {
+
+
+
+            console.log(svg, "BODY: ", d3.select("body"));
 
             var fill = d3.scale.category20();
 
@@ -159,7 +174,6 @@
                 //The outside world will need to call this function, so make it part
                 // of the wordCloud return value.
                 update: function (words) {
-                    d3.selectAll("text").remove();
                     d3.layout.cloud().size([500, 500])
                         .words(words)
                         .padding(5)
@@ -173,18 +187,12 @@
 
         }
 
-        makeWordCloud();
-
-        //Some sample data - http://en.wikiquote.org/wiki/Opening_lines
-        // var words = [
-        //     "You don't know about me without you have read a book called The Adventures of Tom Sawyer but that ain't no matter.",
-        //     "The boy with fair hair lowered himself down the last few feet of rock and began to pick his way toward the lagoon.",
-        //     "When Mr. Bilbo Baggins of Bag End announced that he would shortly be celebrating his eleventy-first birthday with a party of special magnificence, there was much talk and excitement in Hobbiton.",
-        //     "It was inevitable: the scent of bitter almonds always reminded him of the fate of unrequited love."
-        // ]
 
 
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     makeTwitterWordCloud();
+        //     makeRedditWordCloud();
+        //     // your code here
+        // }, false);
 
-        //Prepare one of the sample sentences by removing punctuation,
-        // creating an array of words and computing a random size attribute
     </script>
