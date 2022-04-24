@@ -9,17 +9,16 @@
         }
 
         /* Style for Custom Tooltip */
-        div.tooltip {
+        div.tooltip-map {
             position: absolute;
             text-align: center;
-            width: 60px;
-            height: 28px;
-            padding: 2px;
-            font: 12px sans-serif;
-            background: white;
-            border: 0px;
+            padding: .5rem;
+            background: rgba(255, 255, 255, 0.66);
+            color: #313639;
+            /* border: 1px solid black; */
             border-radius: 8px;
             pointer-events: none;
+            font-size: 12px;
         }
 
         @import url('https://fonts.googleapis.com/css?family=Open+Sans|Playfair+Display+SC');
@@ -171,7 +170,9 @@
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
     <script type="text/javascript">
-
+        
+        var tt_text = [];
+        
         var twitter_svg;
         var reddit_svg;
         document.addEventListener('DOMContentLoaded', function () {
@@ -192,11 +193,7 @@
             // your code here
         }, false);
 
-
-
-
         function makeTwitterWordCloud() {
-
 
             function getWords(vis) {
                 d3.json('tweet_data_month.json', function (data) {
@@ -204,6 +201,18 @@
                     var year = document.getElementById('year').value;
                     var month = document.getElementById('month').value;
                     data = data.filter(d => (d.year == year) & (d.month == month));
+                    // vest test
+                    state_data = data[0];
+                    var negativity = Math.round(state_data.negativity*100)/100;
+                    var positivity = Math.round(state_data.positivity*100)/100;
+                    var neutrality = Math.round(state_data.neutrality*100)/100;
+                    tt_text[0] =  "<span style='color:green'>" + "█ " + "</span>" + positivity 
+                                    + " " + "<span style='color:yellow'>" + "█ " + "</span>" + neutrality 
+                                    + " " + "<span style='color:red'>" + "█ " + "</span>" + negativity;
+                    
+                    document.getElementById('twitter_name').innerHTML = "<strong>Twitter: </strong>" + tt_text[0];
+                                    
+                    
                     var words = data[0]['freq_words'];
 
                     var max = Math.max(...words.map(d => d.size));
@@ -218,7 +227,7 @@
             }
             //Create a new instance of the word cloud visualisation.
             twitter_svg.selectAll("text").remove();
-            var myWordCloud = wordCloud(twitter_svg);
+            var myWordCloud = wordCloud(twitter_svg, 0);
 
             //Start cycling through the demo data
             getWords(myWordCloud);
@@ -231,6 +240,17 @@
                     var year = document.getElementById('year').value;
                     var month = document.getElementById('month').value;
                     data = data.filter(d => (d.year == year) & (d.month == month));
+                    
+                    state_data = data[0];
+                    var negativity = Math.round(state_data.negativity*100)/100;
+                    var positivity = Math.round(state_data.positivity*100)/100;
+                    var neutrality = Math.round(state_data.neutrality*100)/100;
+                    tt_text[1] =  "<span style='color:green'>" + "█ " + "</span>" + positivity 
+                                    + " " + "<span style='color:yellow'>" + "█ " + "</span>" + neutrality 
+                                    + " " + "<span style='color:red'>" + "█ " + "</span>" + negativity;
+
+                    document.getElementById('reddit_name').innerHTML = "<strong>Reddit: </strong>" + tt_text[1];
+
                     var words = data[0]['freq_words'];
 
                     var max = Math.max(...words.map(d => d.size));
@@ -241,11 +261,12 @@
                     });
                     vis.update(data);
                 });
+                
 
             }
             //Create a new instance of the word cloud visualisation.
             reddit_svg.selectAll("text").remove();
-            var myWordCloud = wordCloud(reddit_svg);
+            var myWordCloud = wordCloud(reddit_svg, 1);
 
             //Start cycling through the demo data
             getWords(myWordCloud);
@@ -298,41 +319,28 @@
             onclick="makeWordCloud()" />
     </div>
     <br>
-    <div id='twitter' style="float: left; margin-left: 250px; margin-top: 25px;">Twitter</div>
-    <div id='reddit' style="float: right; margin-right: 500px; margin-top: 25px;">Reddit</div>
-    <!-- <select style="text-align: center; " id="year">
-        <option value="2020">2020</option>
-        <option value="2021" selected>2021</option>
-    </select>
+    
+    <div id='twitter_name' style="position: absolute; float: right; left: 250px; margin-right: 200px; margin-top: 25px; font-size: 20px;"></div>
+    <div id='reddit_name' style="position: absolute; float: right; left: 1040px; margin-right: 200px; margin-top: 25px; font-size: 20px;"></div>
+    
+    <div id='twitter' style="float: left; padding-left: 100px; margin-top: 60px; font-size: 25px;"></div>
+    <div id='reddit' style="float: right; margin-right: 300px; margin-top: 60px; font-size: 25px;"></div>
+    <!-- <div style="float: right; margin-right: 200px; margin-top: 25px; font-size: 25px;"><strong>Reddit</strong></div> -->
+    
+    
+    <div id='legend' style="position: absolute;left: 1520px; top: 300px; font-size: 14px;"><span style='color:green'>█ </span>Positive 
+    <div id='legend' style="left: 1600px; top: 460px; font-size: 14px;"><span style='color:yellow'>█ </span>Neutral 
+    <div id='legend' style="left: 1600px; top: 460px; font-size: 14px;"><span style='color:red'>█ </span>Negative 
 
-    <select style="text-align: center; " id="month">
-        <option value="1">Jan</option>
-        <option value="2">Feb</option>
-        <option value="3">Mar</option>
-        <option value="4">Apr</option>
-        <option value="5">May</option>
-        <option value="6">Jun</option>
-        <option value="7">Jul</option>
-        <option value="8">Aug</option>
-        <option value="9">Sep</option>
-        <option value="10">Oct</option>
-        <option value="11">Nov</option>
-        <option value="12" selected>Dec</option>
-    </select>
-
-    <input type="submit" value="Word Cloud Visualizer" onclick="makeWordCloud()" /> -->
     <script>
-
-
-        //Simple animated example of d3-cloud - https://github.com/jasondavies/d3-cloud
-        //Based on https://github.com/jasondavies/d3-cloud/blob/master/examples/simple.html
-
+        var div = d3.select("body").append("div")
+                .attr("class", "tooltip-map")
+                .style("opacity", 0)
+        
+        
         // Encapsulate the word cloud functionality
-        function wordCloud(svg) {
-
-
-
-            console.log(svg, "BODY: ", d3.select("body"));
+        function wordCloud(svg, f) {
+            // console.log(svg, "BODY: ", d3.select("body"));
 
             var fill = d3.scale.category20();
 
@@ -340,7 +348,7 @@
             function draw(words) {
                 var cloud = svg.selectAll("g text")
                     .data(words, function (d) { return d.text; })
-
+                
                 //Entering words
                 cloud.enter()
                     .append("text")
@@ -348,7 +356,27 @@
                     .style("fill", function (d, i) { return fill(i); })
                     .attr("text-anchor", "middle")
                     .attr('font-size', 1)
-                    .text(function (d) { return d.text; });
+                    .text(function (d) { return d.text; })
+                    .on('mouseover', function(d) {
+                    
+                        d3.select(this).transition().duration('50').attr('opacity', '0.85');
+                        div.transition().duration(50).style("opacity", 1);
+
+                        div.html(tt_text[f])
+                            .style("font-size", "15px")
+                            .style("position", "absolute")
+                            .style("left", (d3.event.pageX ) + "px")
+                            .style("top", (d3.event.pageY) + "px");
+                        
+                    }) .on('mouseout', function (d, i) {
+                        d3.select(this).transition()
+                         .duration('500')
+                         .attr('opacity', '1');
+                        //Makes the new div disappear:
+                        div.transition()
+                         .duration('500')
+                         .style("opacity", 0);
+                });
 
                 //Entering and existing words
                 cloud
@@ -391,7 +419,6 @@
             }
 
         }
-
 
 
         // document.addEventListener('DOMContentLoaded', function () {

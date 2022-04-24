@@ -6,7 +6,7 @@ function plotStates() {
         var year = document.getElementById('year').value;
         var month = document.getElementById('month').value;
         data = data.filter(d => (d.year == year) & (d.month == month));
-        console.log("After: ", data, data.length);
+        // console.log("After: ", data, data.length);
 
         // color.domain([0, 1, 2, 3]); // setting the range of the input data
         color.domain([0, 1, 2]);
@@ -38,7 +38,6 @@ function plotStates() {
                     }
                 }
             }
-            console.log('Features: ', json.features);
 
             // Bind the data to the SVG and create one path per GeoJSON feature
             svg.selectAll("path").remove();
@@ -61,17 +60,6 @@ function plotStates() {
                     else{
                         return "grey"
                     }
-                })
-                .on('click', function (d) {
-                    // var year = document.getElementById('year').value;
-                    // var month = document.getElementById('month').value;
-                    // state_data = data.filter(c => c.state_name == d.properties.name & (c.year == year) & (c.month == month))[0];
-                    // var negativity = state_data.negativity;
-                    // var positivity = state_data.positivity;
-                    // var neutrality = state_data.neutrality;
-                    // console.log(negativity, positivity, neutrality);
-                    // document.getElementById("info").innerHTML = d.properties.name + " Positive Sentiments: " + pos_sentiments + " Negative Sentiments: " + neg_sentitments;
-                    // console.log(d);
                 })
                 .on('mouseover', function(d) {
                     var year = document.getElementById('year').value;
